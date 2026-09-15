@@ -59,6 +59,7 @@ export function Profile() {
   }
 
   const initial = (me?.displayName || me?.email || "?").charAt(0).toUpperCase();
+  const teacherLink = teacherCode ? `${window.location.origin}/ogretmen/${teacherCode.id}` : "";
 
   return (
     <>
@@ -107,6 +108,16 @@ export function Profile() {
                   <p style={{ margin: "6px 0 0", fontSize: "0.82rem" }}>
                     Son geçerlilik: {new Date(teacherCode.expiresAt).toLocaleDateString("tr-TR")}
                   </p>
+                  <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "center" }}>
+                    <input readOnly value={teacherLink} style={{ margin: 0, fontSize: "0.78rem" }} onClick={(e) => e.currentTarget.select()} />
+                    <button
+                      type="button"
+                      className="btn secondary sm"
+                      onClick={() => { navigator.clipboard?.writeText(teacherLink); toast.show("Link kopyalandı.", "success"); }}
+                    >
+                      Kopyala
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
