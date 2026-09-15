@@ -5,6 +5,7 @@ import { useAuth } from "../lib/AuthContext";
 import { useChildren } from "../lib/ChildContext";
 import { ChildSwitcher } from "../components/ChildSwitcher";
 import { Icon } from "../components/Icon";
+import { InstallAppCard } from "../components/InstallAppCard";
 import { useToast } from "../lib/ToastContext";
 
 export function Profile() {
@@ -66,6 +67,7 @@ export function Profile() {
         <ChildSwitcher />
       </div>
       <div className="screen">
+        <InstallAppCard />
         <div className="card">
           <div className="profile-row">
             <div className="profile-avatar">{initial}</div>
