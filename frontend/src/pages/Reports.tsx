@@ -5,6 +5,7 @@ import { ChildSwitcher } from "../components/ChildSwitcher";
 import { Icon } from "../components/Icon";
 import { SkeletonCard } from "../components/Skeleton";
 import { EmptyState } from "../components/EmptyState";
+import { ReportDocument, type MonthlyReportPayload } from "../components/ReportDocument";
 import { useToast } from "../lib/ToastContext";
 
 function AreaList({ title, items, tone }: { title: string; items: AreaScore[]; tone: "strong" | "emerging" | "supportable" }) {
@@ -17,14 +18,6 @@ function AreaList({ title, items, tone }: { title: string; items: AreaScore[]; t
   );
 }
 
-interface MonthlyReportPayload {
-  strong: AreaScore[];
-  emerging: AreaScore[];
-  supportable: AreaScore[];
-  findings: { kind: string; text: string }[];
-  goals: string[];
-  disclaimer: string;
-}
 interface MonthlyReportRow { periodStart: string; periodEnd: string; payload: MonthlyReportPayload }
 
 export function Reports() {
@@ -33,9 +26,16 @@ export function Reports() {
   const [windowDays, setWindowDays] = useState<7 | 30 | 90>(7);
   const [trends, setTrends] = useState<Trends | null>(null);
   const [reports, setReports] = useState<MonthlyReportRow[]>([]);
+  const [areaNames, setAreaNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [openReport, setOpenReport] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.developmentAreas().then((areas) => {
+      setAreaNames(Object.fromEntries(areas.map((a) => [a.code, a.name])));
+    }).catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!active) return;
@@ -73,6 +73,8 @@ export function Reports() {
     trends.findings.length > 0 || trends.buckets.strong.length > 0 ||
     trends.buckets.emerging.length > 0 || trends.buckets.supportable.length > 0
   );
+
+  const openRow = openReport !== null ? reports[openReport] : null;
 
   return (
     <>
@@ -122,41 +124,42 @@ export function Reports() {
           {reports.length === 0 ? (
             !generating && <EmptyState icon="chart" title="Henüz rapor yok" description="Yukarıdaki butonla ilk aylık raporunuzu oluşturun." />
           ) : (
-            reports.map((r, i) => {
-              const isOpen = openReport === i;
-              const p = r.payload;
-              return (
-                <div key={i} className="list-item" style={{ cursor: "pointer" }} onClick={() => setOpenReport(isOpen ? null : i)}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <Icon name="calendar" size={18} />
-                    <span style={{ color: "var(--text)", fontWeight: 600, flex: 1 }}>{r.periodStart} → {r.periodEnd}</span>
-                    <Icon name={isOpen ? "chevronUp" : "chevronDown"} size={18} />
-                  </div>
-                  {isOpen && (
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-                      {p.strong?.length === 0 && p.emerging?.length === 0 && p.supportable?.length === 0 && (
-                        <p style={{ margin: 0 }}>Bu dönem için henüz belirgin bir örüntü yok.</p>
-                      )}
-                      <AreaList title="Güçlü gelişim" items={p.strong ?? []} tone="strong" />
-                      <AreaList title="Gelişmekte olan" items={p.emerging ?? []} tone="emerging" />
-                      <AreaList title="Desteklenebilecek" items={p.supportable ?? []} tone="supportable" />
-                      {p.findings?.map((f, fi) => <p key={fi} style={{ marginBottom: 6 }}>• {f.text}</p>)}
-                      {p.goals?.length > 0 && (
-                        <>
-                          <h3 style={{ fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text-muted)", marginTop: 12, marginBottom: 6 }}>
-                            Gelecek ay için hedefler
-                          </h3>
-                          <p style={{ margin: 0 }}>{p.goals.join(", ")}</p>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })
+            reports.map((r, i) => (
+              <div key={i} className="list-item" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }} onClick={() => setOpenReport(i)}>
+                <Icon name="calendar" size={18} />
+                <span style={{ color: "var(--text)", fontWeight: 600, flex: 1 }}>
+                  {new Date(r.periodStart).toLocaleDateString("tr-TR")} → {new Date(r.periodEnd).toLocaleDateString("tr-TR")}
+                </span>
+                <Icon name="chevronDown" size={18} style={{ transform: "rotate(-90deg)", color: "var(--text-muted)" }} />
+              </div>
+            ))
           )}
         </div>
       </div>
+
+      {openRow && (
+        <div className="modal-overlay no-print" onClick={() => setOpenReport(null)}>
+          <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header no-print">
+              <button className="btn secondary sm" onClick={() => window.print()}>
+                <Icon name="download" size={16} />PDF olarak indir
+              </button>
+              <button className="modal-close" onClick={() => setOpenReport(null)} aria-label="Kapat" style={{ fontSize: "1.3rem", lineHeight: 1 }}>
+                ×
+              </button>
+            </div>
+            <div className="print-target">
+              <ReportDocument
+                childName={active.nickname}
+                periodStart={openRow.periodStart}
+                periodEnd={openRow.periodEnd}
+                payload={openRow.payload}
+                areaNames={areaNames}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
