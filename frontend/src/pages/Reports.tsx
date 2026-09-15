@@ -17,14 +17,25 @@ function AreaList({ title, items, tone }: { title: string; items: AreaScore[]; t
   );
 }
 
+interface MonthlyReportPayload {
+  strong: AreaScore[];
+  emerging: AreaScore[];
+  supportable: AreaScore[];
+  findings: { kind: string; text: string }[];
+  goals: string[];
+  disclaimer: string;
+}
+interface MonthlyReportRow { periodStart: string; periodEnd: string; payload: MonthlyReportPayload }
+
 export function Reports() {
   const { active, loading: childrenLoading } = useChildren();
   const toast = useToast();
   const [windowDays, setWindowDays] = useState<7 | 30 | 90>(7);
   const [trends, setTrends] = useState<Trends | null>(null);
-  const [reports, setReports] = useState<{ periodStart: string; periodEnd: string; payload: Record<string, unknown> }[]>([]);
+  const [reports, setReports] = useState<MonthlyReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [openReport, setOpenReport] = useState<number | null>(null);
 
   useEffect(() => {
     if (!active) return;
@@ -32,7 +43,7 @@ export function Reports() {
     Promise.all([api.trends(active.id, windowDays), api.monthlyReports(active.id)])
       .then(([t, r]) => {
         setTrends(t);
-        setReports(r);
+        setReports(r as unknown as MonthlyReportRow[]);
       })
       .catch((err) => toast.show(err instanceof ApiError ? err.message : "Raporlar yüklenemedi", "error"))
       .finally(() => setLoading(false));
@@ -45,7 +56,8 @@ export function Reports() {
     try {
       await api.generateMonthlyReport(active.id);
       const r = await api.monthlyReports(active.id);
-      setReports(r);
+      setReports(r as unknown as MonthlyReportRow[]);
+      setOpenReport(0);
       toast.show("Aylık rapor oluşturuldu.", "success");
     } catch (err) {
       toast.show(err instanceof ApiError ? err.message : "Rapor oluşturulamadı", "error");
@@ -110,12 +122,38 @@ export function Reports() {
           {reports.length === 0 ? (
             !generating && <EmptyState icon="chart" title="Henüz rapor yok" description="Yukarıdaki butonla ilk aylık raporunuzu oluşturun." />
           ) : (
-            reports.map((r, i) => (
-              <div key={i} className="list-item" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Icon name="calendar" size={18} />
-                <span style={{ color: "var(--text)", fontWeight: 600 }}>{r.periodStart} → {r.periodEnd}</span>
-              </div>
-            ))
+            reports.map((r, i) => {
+              const isOpen = openReport === i;
+              const p = r.payload;
+              return (
+                <div key={i} className="list-item" style={{ cursor: "pointer" }} onClick={() => setOpenReport(isOpen ? null : i)}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <Icon name="calendar" size={18} />
+                    <span style={{ color: "var(--text)", fontWeight: 600, flex: 1 }}>{r.periodStart} → {r.periodEnd}</span>
+                    <Icon name={isOpen ? "chevronUp" : "chevronDown"} size={18} />
+                  </div>
+                  {isOpen && (
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+                      {p.strong?.length === 0 && p.emerging?.length === 0 && p.supportable?.length === 0 && (
+                        <p style={{ margin: 0 }}>Bu dönem için henüz belirgin bir örüntü yok.</p>
+                      )}
+                      <AreaList title="Güçlü gelişim" items={p.strong ?? []} tone="strong" />
+                      <AreaList title="Gelişmekte olan" items={p.emerging ?? []} tone="emerging" />
+                      <AreaList title="Desteklenebilecek" items={p.supportable ?? []} tone="supportable" />
+                      {p.findings?.map((f, fi) => <p key={fi} style={{ marginBottom: 6 }}>• {f.text}</p>)}
+                      {p.goals?.length > 0 && (
+                        <>
+                          <h3 style={{ fontSize: "0.82rem", textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text-muted)", marginTop: 12, marginBottom: 6 }}>
+                            Gelecek ay için hedefler
+                          </h3>
+                          <p style={{ margin: 0 }}>{p.goals.join(", ")}</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       </div>

@@ -11,6 +11,7 @@ import { Development } from "./pages/Development";
 import { Activities } from "./pages/Activities";
 import { Reports } from "./pages/Reports";
 import { Profile } from "./pages/Profile";
+import { TeacherForm } from "./pages/TeacherForm";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { ready, me } = useAuth();
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="/" element={<Root />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/ogretmen/:codeId" element={<TeacherForm />} />
         <Route
           path="/*"
           element={

@@ -18,6 +18,7 @@ management:
       exposure:
         include: health
 app:
+  base-url: ${APP_BASE_URL:http://localhost:5173}
   jwt:
     secret: ${JWT_SECRET:degistirilmeli-en-az-32-karakterlik-gizli-anahtar}
     access-ttl-minutes: 15

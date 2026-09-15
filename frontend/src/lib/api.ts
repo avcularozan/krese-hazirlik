@@ -200,3 +200,20 @@ export const api = {
   revokeTeacherCode: (childId: string, codeId: string) =>
     call<void>(`/children/${childId}/teacher-codes/${codeId}`, { method: "DELETE" }),
 };
+
+export interface TeacherSession { childNickname: string; expiresAt: string }
+
+export const teacherApi = {
+  session: (codeId: string, code: string) =>
+    raw<TeacherSession>(`/teacher/session?codeId=${encodeURIComponent(codeId)}`, { headers: { "X-Access-Code": code } }, false),
+  submit: (
+    codeId: string,
+    code: string,
+    body: { teacherAlias?: string; observedOn?: string; items?: Record<string, ItemValue>; note?: string }
+  ) =>
+    raw<{ status: string; observedOn: string }>(`/teacher/observations?codeId=${encodeURIComponent(codeId)}`, {
+      method: "POST",
+      headers: { "X-Access-Code": code },
+      body: JSON.stringify(body),
+    }, false),
+};
