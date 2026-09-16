@@ -179,6 +179,10 @@ export const api = {
 
   developmentAreas: () => call<DevelopmentArea[]>("/development/areas"),
   skills: (childId: string) => call<Skill[]>(`/children/${childId}/development/skills`),
+  skillHistory: (childId: string, skillId: string) =>
+    call<{ level: SkillLevel; observedOn: string; source: string }[]>(
+      `/children/${childId}/development/skills/${skillId}/history`
+    ),
   observeSkill: (childId: string, body: { skillId: string; level: SkillLevel; observedOn?: string; note?: string }) =>
     call<{ status: string }>(`/children/${childId}/development/observations`, {
       method: "POST",

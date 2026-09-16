@@ -68,6 +68,18 @@ public class DevelopmentController {
         return Map.<String, Object>of("status", "ok");
     }
 
+    /** Bir becerinin zaman çizgisi: eskiden yeniye, ebeveynin kendi kayıtları. */
+    @GetMapping("/children/{childId}/development/skills/{skillId}/history")
+    public List<Map<String, Object>> history(@PathVariable UUID childId, @PathVariable UUID skillId) {
+        access.requireOwned(childId, CurrentParent.id());
+        return skillObs.findByChildIdAndSkillIdOrderByObservedOnAsc(childId, skillId).stream()
+                .map(o -> Map.<String, Object>of(
+                        "level", o.getLevel().name(),
+                        "observedOn", o.getObservedOn().toString(),
+                        "source", o.getSource().name()))
+                .toList();
+    }
+
     @GetMapping("/children/{childId}/development/summary")
     public Map<String, Object> summary(@PathVariable UUID childId) {
         access.requireOwned(childId, CurrentParent.id());

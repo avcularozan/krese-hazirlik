@@ -4,6 +4,7 @@ import { useChildren } from "../lib/ChildContext";
 import { ChildSwitcher } from "../components/ChildSwitcher";
 import { SkeletonCard } from "../components/Skeleton";
 import { EmptyState } from "../components/EmptyState";
+import { Icon } from "../components/Icon";
 import { useToast } from "../lib/ToastContext";
 
 const LEVEL_OPTIONS: { value: SkillLevel; label: string }[] = [
@@ -14,6 +15,16 @@ const LEVEL_OPTIONS: { value: SkillLevel; label: string }[] = [
   { value: "NA", label: "Gözlemleyemedim" },
 ];
 
+const LEVEL_LABEL: Record<SkillLevel, string> = {
+  IND: "Kendi başına yapıyor",
+  REM: "Hatırlatmayla yapıyor",
+  HELP: "Yardımla yapıyor",
+  NOT: "Henüz yapmıyor",
+  NA: "Gözlemleyemedim",
+};
+
+type HistoryEntry = { level: SkillLevel; observedOn: string; source: string };
+
 export function Development() {
   const { active, loading: childrenLoading } = useChildren();
   const toast = useToast();
@@ -23,6 +34,9 @@ export function Development() {
   const [loading, setLoading] = useState(true);
   const [savingSkill, setSavingSkill] = useState<string | null>(null);
   const [activeArea, setActiveArea] = useState<string>("");
+  const [openHistory, setOpenHistory] = useState<string | null>(null);
+  const [history, setHistory] = useState<Record<string, HistoryEntry[]>>({});
+  const [historyLoading, setHistoryLoading] = useState<string | null>(null);
 
   useEffect(() => {
     api.developmentAreas().then(setAreas).catch(() => undefined);
@@ -48,12 +62,32 @@ export function Development() {
     try {
       await api.observeSkill(active.id, { skillId, level });
       setSkills((prev) => prev.map((s) => (s.id === skillId ? { ...s, level, observedOn: today } : s)));
+      if (history[skillId]) {
+        const fresh = await api.skillHistory(active.id, skillId);
+        setHistory((prev) => ({ ...prev, [skillId]: fresh }));
+      }
       const sum = await api.developmentSummary(active.id);
       setSummary(sum.areas);
     } catch (err) {
       toast.show(err instanceof ApiError ? err.message : "Kaydedilemedi", "error");
     } finally {
       setSavingSkill(null);
+    }
+  }
+
+  async function toggleHistory(skillId: string) {
+    if (openHistory === skillId) { setOpenHistory(null); return; }
+    setOpenHistory(skillId);
+    if (history[skillId] || !active) return;
+    setHistoryLoading(skillId);
+    try {
+      const h = await api.skillHistory(active.id, skillId);
+      setHistory((prev) => ({ ...prev, [skillId]: h }));
+    } catch (err) {
+      toast.show(err instanceof ApiError ? err.message : "Geçmiş yüklenemedi", "error");
+      setOpenHistory(null);
+    } finally {
+      setHistoryLoading(null);
     }
   }
 
@@ -117,9 +151,35 @@ export function Development() {
                   ))}
                 </div>
                 {skill.observedOn && (
-                  <p className="skill-meta">
-                    Son işaretleme: {new Date(skill.observedOn).toLocaleDateString("tr-TR")}
-                  </p>
+                  <div className="skill-footer">
+                    <span className="skill-meta">
+                      Son işaretleme: {new Date(skill.observedOn).toLocaleDateString("tr-TR")}
+                    </span>
+                    <button type="button" className="link-btn skill-history-btn" onClick={() => toggleHistory(skill.id)}>
+                      {openHistory === skill.id ? "Gizle" : "Değişimi gör"}
+                      <Icon name={openHistory === skill.id ? "chevronUp" : "chevronDown"} size={14} />
+                    </button>
+                  </div>
+                )}
+
+                {openHistory === skill.id && (
+                  <div className="timeline">
+                    {historyLoading === skill.id && <p className="skill-meta">Yükleniyor…</p>}
+                    {history[skill.id]?.length === 1 && (
+                      <p className="skill-meta" style={{ marginBottom: 10 }}>
+                        Tek kayıt var. Ara ara işaretledikçe burada değişimi göreceksiniz.
+                      </p>
+                    )}
+                    {history[skill.id]?.map((h, i, arr) => (
+                      <div key={h.observedOn} className={`timeline-item ${i === arr.length - 1 ? "current" : ""}`}>
+                        <span className="timeline-dot" />
+                        <div>
+                          <span className="timeline-date">{new Date(h.observedOn).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}</span>
+                          <span className="timeline-level">{LEVEL_LABEL[h.level]}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}

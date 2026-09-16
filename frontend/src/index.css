@@ -336,7 +336,33 @@ label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-
 /* ---------- Skill card ---------- */
 .skill-card { padding: 16px 18px; }
 .skill-text { color: var(--text); font-weight: 600; font-size: 0.92rem; margin-bottom: 12px; }
-.skill-meta { font-size: 0.76rem; color: var(--text-muted); margin: 10px 0 0; }
+.skill-meta { font-size: 0.76rem; color: var(--text-muted); margin: 0; }
+.skill-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+}
+.skill-history-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; }
+
+/* ---------- Beceri zaman çizgisi ---------- */
+.timeline { margin-top: 14px; padding-left: 4px; }
+.timeline-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding-bottom: 14px; position: relative;
+}
+.timeline-item::before {
+  content: ""; position: absolute; left: 4px; top: 12px; bottom: -2px;
+  width: 2px; background: var(--border);
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item:last-child::before { display: none; }
+.timeline-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--border);
+  margin-top: 4px; flex-shrink: 0; position: relative; z-index: 1;
+}
+.timeline-item.current .timeline-dot { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.timeline-date { display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 600; }
+.timeline-level { display: block; font-size: 0.88rem; color: var(--text); font-weight: 600; }
+.timeline-item.current .timeline-level { color: var(--accent); }
 
 /* ---------- Empty state ---------- */
 .empty-state { text-align: center; padding: 48px 24px; }
