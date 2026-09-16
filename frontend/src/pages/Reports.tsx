@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { api, ApiError, type AreaScore, type Trends } from "../lib/api";
+import { api, ApiError, type AreaScore, type Comparison, type Trends } from "../lib/api";
 import { useChildren } from "../lib/ChildContext";
 import { ChildSwitcher } from "../components/ChildSwitcher";
 import { Icon } from "../components/Icon";
@@ -27,6 +27,7 @@ export function Reports() {
   const [windowDays, setWindowDays] = useState<7 | 30 | 90>(7);
   const [trends, setTrends] = useState<Trends | null>(null);
   const [reports, setReports] = useState<MonthlyReportRow[]>([]);
+  const [comparison, setComparison] = useState<Comparison | null>(null);
   const [areaNames, setAreaNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -41,10 +42,11 @@ export function Reports() {
   useEffect(() => {
     if (!active) return;
     setLoading(true);
-    Promise.all([api.trends(active.id, windowDays), api.monthlyReports(active.id)])
-      .then(([t, r]) => {
+    Promise.all([api.trends(active.id, windowDays), api.monthlyReports(active.id), api.comparison(active.id)])
+      .then(([t, r, c]) => {
         setTrends(t);
         setReports(r as unknown as MonthlyReportRow[]);
+        setComparison(c);
       })
       .catch((err) => toast.show(err instanceof ApiError ? err.message : "Raporlar yüklenemedi", "error"))
       .finally(() => setLoading(false));
@@ -113,6 +115,67 @@ export function Reports() {
                 <Icon name="info" size={18} />
                 <p>{trends.referralHint}</p>
               </div>
+            )}
+          </div>
+        )}
+
+        {!loading && comparison && (
+          <div className="card">
+            <h2>Evde ve okulda</h2>
+            {comparison.teacherEntryCount === 0 ? (
+              <>
+                <p style={{ marginBottom: 0 }}>
+                  Öğretmeninden henüz gözlem gelmemiş. Profil sekmesinden bir öğretmen bağlantısı
+                  oluşturup paylaşırsanız, gözlemleri burada sizinkilerle yan yana görünür.
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  Öğretmen {comparison.teacherEntryCount} gün gözlem girdi
+                  {comparison.lastTeacherObservedOn &&
+                    ` · son kayıt ${new Date(comparison.lastTeacherObservedOn).toLocaleDateString("tr-TR")}`}
+                </p>
+
+                <div className="series-legend">
+                  <span><i className="dot-parent" />Siz</span>
+                  <span><i className="dot-teacher" />Öğretmen</span>
+                </div>
+
+                {comparison.items.length === 0 ? (
+                  <p style={{ margin: 0 }}>
+                    Henüz aynı maddede iki taraftan da kayıt yok. Öğretmenin baktığı maddeleri siz de
+                    işaretledikçe karşılaştırma burada oluşacak.
+                  </p>
+                ) : (
+                  comparison.items.map((it) => {
+                    const gap = Math.abs(it.parentAverage - it.teacherAverage);
+                    return (
+                      <div key={it.itemCode} className="compare-row">
+                        <span className="compare-label">{it.itemText}</span>
+                        <div className="compare-bars">
+                          <div className="compare-bar">
+                            <div className="bar-fill bar-parent" style={{ width: `${(it.parentAverage / 3) * 100}%` }} />
+                          </div>
+                          <div className="compare-bar">
+                            <div className="bar-fill bar-teacher" style={{ width: `${(it.teacherAverage / 3) * 100}%` }} />
+                          </div>
+                        </div>
+                        {gap >= 1 && (
+                          <span className="compare-note">
+                            Evde ve okulda farklı görünüyor — bu olağan bir durum.
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+
+                <div className="callout" style={{ marginTop: 14 }}>
+                  <Icon name="info" size={18} />
+                  <p>{comparison.note}</p>
+                </div>
+              </>
             )}
           </div>
         )}

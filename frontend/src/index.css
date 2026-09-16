@@ -425,6 +425,29 @@ label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-
 .settings-item.danger { color: var(--danger); }
 .settings-item.danger .icon-box { color: var(--danger); background: var(--danger-soft); }
 
+/* ---------- Ebeveyn / öğretmen karşılaştırması ---------- */
+/* Seri renkleri TASARIM.md'den: ebeveyn mürdüm, öğretmen adaçayı. Renk asla metne uygulanmaz. */
+:root { --series-parent: #8433b5; --series-teacher: #0f7a57; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --series-parent: #a96fd8; --series-teacher: #2fa87f; }
+}
+:root[data-theme="dark"] { --series-parent: #a96fd8; --series-teacher: #2fa87f; }
+
+.series-legend { display: flex; gap: 16px; margin-bottom: 16px; }
+.series-legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+.series-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.series-legend i.dot-parent { background: var(--series-parent); }
+.series-legend i.dot-teacher { background: var(--series-teacher); }
+
+.compare-row { margin-bottom: 16px; }
+.compare-label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.compare-bars { display: flex; flex-direction: column; gap: 4px; }
+.compare-bar { height: 9px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+.bar-fill.bar-parent { background: var(--series-parent); }
+.bar-fill.bar-teacher { background: var(--series-teacher); }
+.compare-note { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+
 /* ---------- Report document modal ---------- */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(20, 14, 26, 0.55);

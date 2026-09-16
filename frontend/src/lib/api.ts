@@ -44,6 +44,22 @@ export interface Trends {
   buckets: { strong: AreaScore[]; emerging: AreaScore[]; supportable: AreaScore[] };
   referralHint: string | null;
 }
+export interface ComparisonItem {
+  itemCode: string;
+  itemText: string;
+  areaCode: string;
+  parentAverage: number;
+  parentCount: number;
+  teacherAverage: number;
+  teacherCount: number;
+}
+export interface Comparison {
+  items: ComparisonItem[];
+  teacherEntryCount: number;
+  lastTeacherObservedOn: string | null;
+  note: string;
+}
+
 export interface DevelopmentArea { code: string; name: string; }
 export interface Skill {
   id: string;
@@ -174,8 +190,7 @@ export const api = {
 
   trends: (childId: string, windowDays: 7 | 30 | 90 = 7) =>
     call<Trends>(`/children/${childId}/trends?window=${windowDays}`),
-  comparison: (childId: string) =>
-    call<{ items: unknown[]; note: string }>(`/children/${childId}/comparison`),
+  comparison: (childId: string) => call<Comparison>(`/children/${childId}/comparison`),
 
   developmentAreas: () => call<DevelopmentArea[]>("/development/areas"),
   skills: (childId: string) => call<Skill[]>(`/children/${childId}/development/skills`),

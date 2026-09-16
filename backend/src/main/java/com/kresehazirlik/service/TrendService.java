@@ -130,15 +130,34 @@ public class TrendService {
                 "devam etmesi halinde öğretmeninizle ve uygun bir çocuk gelişimi uzmanıyla görüşmeniz yararlı olabilir.");
     }
 
+    public record ComparisonItem(String itemCode, String itemText, String areaCode,
+                                 double parentAverage, int parentCount,
+                                 double teacherAverage, int teacherCount) {}
+
     /** Ebeveyn ve öğretmen gözlemleri ayrı seriler olarak döner; asla tek ortalamada birleştirilmez. */
-    public Map<String, Map<String, Double>> parentVsTeacher(UUID childId, LocalDate today) {
+    public List<ComparisonItem> parentVsTeacher(UUID childId, LocalDate today) {
         var p = byItem(window(childId, ObservationSource.PARENT, today, 30));
         var t = byItem(window(childId, ObservationSource.TEACHER, today, 30));
-        Map<String, Map<String, Double>> out = new LinkedHashMap<>();
-        for (String code : p.keySet()) {
-            if (!t.containsKey(code)) continue;
-            out.put(code, Map.of("parent", avg(p.get(code)), "teacher", avg(t.get(code))));
+        List<ComparisonItem> out = new ArrayList<>();
+        // Katalog sırası korunur; yalnızca iki tarafın da kaydı olan maddeler yan yana konur.
+        for (var item : CheckInQuestionService.all()) {
+            var pv = p.get(item.code());
+            var tv = t.get(item.code());
+            if (pv == null || tv == null) continue;
+            out.add(new ComparisonItem(item.code(), item.text(), item.areaCode(),
+                    avg(pv), pv.size(), avg(tv), tv.size()));
         }
         return out;
+    }
+
+    /** Öğretmen serisinin özeti: kaç gün gözlem girilmiş ve en son ne zaman. */
+    public Optional<LocalDate> lastTeacherObservation(UUID childId, LocalDate today) {
+        var list = window(childId, ObservationSource.TEACHER, today, 30);
+        return list.isEmpty() ? Optional.empty()
+                : Optional.of(list.get(list.size() - 1).getCheckInDate());
+    }
+
+    public int teacherEntryCount(UUID childId, LocalDate today) {
+        return window(childId, ObservationSource.TEACHER, today, 30).size();
     }
 }

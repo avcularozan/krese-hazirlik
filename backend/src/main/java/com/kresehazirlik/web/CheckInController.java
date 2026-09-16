@@ -82,8 +82,15 @@ public class CheckInController {
     @GetMapping("/comparison")
     public Map<String, Object> comparison(@PathVariable UUID childId) {
         access.requireOwned(childId, CurrentParent.id());
-        return Map.<String, Object>of("items", trends.parentVsTeacher(childId, LocalDate.now()),
-                "note", "Ebeveyn ve öğretmen gözlemleri ayrı tutulur; farklı olmaları olağandır.");
+        LocalDate today = LocalDate.now();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("items", trends.parentVsTeacher(childId, today));
+        out.put("teacherEntryCount", trends.teacherEntryCount(childId, today));
+        out.put("lastTeacherObservedOn",
+                trends.lastTeacherObservation(childId, today).map(LocalDate::toString).orElse(null));
+        out.put("note", "Ebeveyn ve öğretmen gözlemleri ayrı tutulur; farklı olmaları olağandır. "
+                + "Çocuklar evde ve okulda farklı davranabilir.");
+        return out;
     }
 
     private CheckInResponse toResponse(DailyCheckIn ci) {
