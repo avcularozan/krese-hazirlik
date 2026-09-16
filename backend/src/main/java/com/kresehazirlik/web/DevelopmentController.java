@@ -28,13 +28,24 @@ public class DevelopmentController {
                 .map(a -> Map.<String, Object>of("code", a.getCode(), "name", a.getNameTr())).toList();
     }
 
-    /** Yalnızca çocuğun kronolojik yaşına uygun maddeler döner. */
+    /** Yalnızca çocuğun kronolojik yaşına uygun maddeler döner; her madde en son işaretlenen düzeyi taşır. */
     @GetMapping("/children/{childId}/development/skills")
     public List<SkillResponse> skills(@PathVariable UUID childId) {
         Child c = access.requireOwned(childId, CurrentParent.id());
         short m = (short) c.ageMonths();
+
+        // Tek sorgu, tarihe göre azalan: her beceri için ilk görülen kayıt en günceli olur.
+        Map<UUID, SkillObservation> latest = new HashMap<>();
+        for (SkillObservation o : skillObs.findByChildIdOrderByObservedOnDesc(childId))
+            latest.putIfAbsent(o.getSkill().getId(), o);
+
         return skills.findByMinAgeMonthsLessThanEqualAndMaxAgeMonthsGreaterThanEqual(m, m).stream()
-                .map(s -> new SkillResponse(s.getId(), s.getCode(), s.getTextTr(), s.getArea().getCode())).toList();
+                .map(s -> {
+                    SkillObservation o = latest.get(s.getId());
+                    return new SkillResponse(s.getId(), s.getCode(), s.getTextTr(), s.getArea().getCode(),
+                            o == null ? null : o.getLevel().name(),
+                            o == null ? null : o.getObservedOn());
+                }).toList();
     }
 
     @PostMapping("/children/{childId}/development/observations") @Transactional
@@ -42,10 +53,16 @@ public class DevelopmentController {
         Child c = access.requireOwned(childId, CurrentParent.id());
         DevelopmentSkill skill = skills.findById(req.skillId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Beceri bulunamadı"));
-        SkillObservation o = new SkillObservation();
+        LocalDate on = req.observedOn() == null ? LocalDate.now() : req.observedOn();
+
+        // Aynı gün yeniden işaretlenirse yeni kayıt açılmaz, mevcut düzey güncellenir;
+        // böylece tekrar tıklama ortalamaları şişirmez.
+        SkillObservation o = skillObs
+                .findByChildIdAndSkillIdAndObservedOnAndSource(childId, skill.getId(), on, ObservationSource.PARENT)
+                .orElseGet(SkillObservation::new);
         o.setChild(c); o.setSkill(skill);
         o.setLevel(SkillLevel.valueOf(req.level()));
-        o.setObservedOn(req.observedOn() == null ? LocalDate.now() : req.observedOn());
+        o.setObservedOn(on);
         o.setNote(req.note());
         skillObs.save(o);
         return Map.<String, Object>of("status", "ok");

@@ -36,7 +36,9 @@ public class Dtos {
     public record CheckInResponse(LocalDate date, Short overallMood, Map<String, Short> items,
                                   String note, String source) {}
 
-    public record SkillResponse(UUID id, String code, String text, String areaCode) {}
+    /** level/observedOn: bu beceri için en son kaydedilen düzey; hiç işaretlenmediyse null. */
+    public record SkillResponse(UUID id, String code, String text, String areaCode,
+                                String level, LocalDate observedOn) {}
     public record SkillObservationRequest(@NotNull UUID skillId, @NotBlank String level, LocalDate observedOn, String note) {}
 
     public record ActivityResponse(String code, String title, String areaCode, String goal,

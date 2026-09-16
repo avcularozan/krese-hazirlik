@@ -34,6 +34,8 @@ public interface Repos {
 
     interface SkillObservationRepo extends JpaRepository<SkillObservation, UUID> {
         List<SkillObservation> findByChildIdOrderByObservedOnDesc(UUID childId);
+        Optional<SkillObservation> findByChildIdAndSkillIdAndObservedOnAndSource(
+                UUID childId, UUID skillId, LocalDate observedOn, ObservationSource source);
     }
 
     interface TeacherCodeRepo extends JpaRepository<TeacherAccessCode, UUID> {

@@ -336,6 +336,7 @@ label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-
 /* ---------- Skill card ---------- */
 .skill-card { padding: 16px 18px; }
 .skill-text { color: var(--text); font-weight: 600; font-size: 0.92rem; margin-bottom: 12px; }
+.skill-meta { font-size: 0.76rem; color: var(--text-muted); margin: 10px 0 0; }
 
 /* ---------- Empty state ---------- */
 .empty-state { text-align: center; padding: 48px 24px; }

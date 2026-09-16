@@ -44,11 +44,12 @@ export function Development() {
   async function recordLevel(skillId: string, level: SkillLevel) {
     if (!active) return;
     setSavingSkill(skillId);
+    const today = new Date().toISOString().slice(0, 10);
     try {
       await api.observeSkill(active.id, { skillId, level });
+      setSkills((prev) => prev.map((s) => (s.id === skillId ? { ...s, level, observedOn: today } : s)));
       const sum = await api.developmentSummary(active.id);
       setSummary(sum.areas);
-      toast.show("Gözlem kaydedildi.", "success");
     } catch (err) {
       toast.show(err instanceof ApiError ? err.message : "Kaydedilemedi", "error");
     } finally {
@@ -68,7 +69,11 @@ export function Development() {
         <ChildSwitcher />
       </div>
       <div className="screen">
-        <p>{active.nickname} için yaşa uygun beceriler. Bu bir tanı ya da kıyaslama değildir.</p>
+        <p>
+          {active.nickname} şu an nerede? Her beceriyi ara ara işaretleyin — haftada bir yeterli.
+          Uygulama aynı becerinin zaman içinde nasıl değiştiğini izler, çocukları kıyaslamaz.
+          Aynı gün tekrar işaretlerseniz kaydınız güncellenir.
+        </p>
 
         {loading ? (
           <>
@@ -103,7 +108,7 @@ export function Development() {
                     <button
                       key={opt.value}
                       type="button"
-                      className="option-chip"
+                      className={`option-chip ${skill.level === opt.value ? "selected" : ""}`}
                       disabled={savingSkill === skill.id}
                       onClick={() => recordLevel(skill.id, opt.value)}
                     >
@@ -111,6 +116,11 @@ export function Development() {
                     </button>
                   ))}
                 </div>
+                {skill.observedOn && (
+                  <p className="skill-meta">
+                    Son işaretleme: {new Date(skill.observedOn).toLocaleDateString("tr-TR")}
+                  </p>
+                )}
               </div>
             ))}
           </>

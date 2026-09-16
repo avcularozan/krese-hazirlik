@@ -45,7 +45,15 @@ export interface Trends {
   referralHint: string | null;
 }
 export interface DevelopmentArea { code: string; name: string; }
-export interface Skill { id: string; code: string; text: string; areaCode: string; }
+export interface Skill {
+  id: string;
+  code: string;
+  text: string;
+  areaCode: string;
+  /** Bu beceri için en son kaydedilen düzey; hiç işaretlenmediyse null. */
+  level: SkillLevel | null;
+  observedOn: string | null;
+}
 export interface Activity {
   code: string; title: string; areaCode: string; goal: string;
   materials: string[]; durationMinutes: number; steps: string[]; parentTips: string[];
