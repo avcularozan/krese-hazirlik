@@ -417,29 +417,86 @@ label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-
   display: flex; align-items: center; justify-content: center; color: var(--text); cursor: pointer;
 }
 
-.report-doc { padding: 22px; }
-.report-doc-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
-.report-doc h1 { font-size: 1.35rem; margin-bottom: 2px; }
-.report-doc .period { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px; }
-.report-doc .intro { font-size: 0.96rem; color: var(--text); line-height: 1.6; margin-bottom: 22px; }
-.report-doc section { margin-bottom: 22px; }
-.report-doc section h2 { font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
-.report-doc .area-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.report-doc { padding: 24px 22px 28px; }
+.report-brand {
+  font-family: "Baloo 2", sans-serif; font-weight: 700; font-size: 0.82rem; color: var(--accent);
+  padding-bottom: 10px; margin-bottom: 18px; border-bottom: 2px solid var(--accent-soft);
+}
+.report-doc-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px; }
+.report-doc h1 { font-size: 1.6rem; margin-bottom: 2px; }
+.report-doc .period { color: var(--text-muted); font-size: 0.88rem; font-weight: 600; margin-bottom: 18px; }
+.report-doc .intro { font-size: 0.94rem; color: var(--text); line-height: 1.65; margin-bottom: 20px; }
+
+.stat-row { display: flex; gap: 10px; margin-bottom: 26px; }
+.stat {
+  flex: 1; background: var(--surface-2); border-radius: var(--radius-sm); padding: 14px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;
+}
+.stat-num { font-family: "Baloo 2", sans-serif; font-size: 1.5rem; font-weight: 700; line-height: 1; }
+.stat-num.stat-strong { color: var(--sage); }
+.stat-num.stat-emerging { color: var(--honey); }
+.stat-num.stat-supportable { color: var(--accent); }
+.stat-label { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
+
+.report-doc section { margin-bottom: 24px; }
+.report-doc section h2 { font-size: 1rem; display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+.section-no {
+  width: 22px; height: 22px; border-radius: 7px; background: var(--accent); color: #fff;
+  font-size: 0.74rem; font-family: "Figtree", sans-serif; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.section-hint { font-size: 0.85rem; margin: 0 0 10px 31px; }
+
+.report-doc .area-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-left: 31px; }
 .report-doc .area-chip {
-  padding: 7px 13px; border-radius: 999px; font-size: 0.84rem; font-weight: 600; background: var(--surface-2); color: var(--text);
+  padding: 7px 13px; border-radius: 999px; font-size: 0.84rem; font-weight: 600;
+  background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
 }
-.report-doc .finding-line { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
-.report-doc .finding-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 8px; flex-shrink: 0; }
+.area-chip.chip-strong { background: var(--sage-soft); color: var(--sage); border-color: transparent; }
+.area-chip.chip-emerging { background: var(--honey-soft); color: var(--honey); border-color: transparent; }
+.area-chip.chip-supportable { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+
+.report-doc .finding-line { display: flex; gap: 10px; margin: 0 0 10px 31px; align-items: flex-start; }
+.report-doc .finding-line p { margin: 0; color: var(--text); font-size: 0.91rem; line-height: 1.55; }
+.report-doc .finding-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+.finding-dot.dot-strong { background: var(--sage); }
+.finding-dot.dot-honey { background: var(--honey); }
+
 .report-doc .goal-box {
-  background: var(--accent-soft); border-radius: var(--radius-sm); padding: 16px;
+  background: var(--accent-soft); border-radius: var(--radius-sm); padding: 16px; margin-left: 31px;
 }
+.report-doc .goal-box p { color: var(--text); font-size: 0.88rem; }
 .report-doc .goal-box ol { margin: 8px 0 0; padding-left: 20px; }
-.report-doc .goal-box li { margin-bottom: 6px; color: var(--text); font-weight: 600; }
-.report-doc .disclaimer { font-size: 0.78rem; color: var(--text-muted); font-style: italic; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 8px; }
+.report-doc .goal-box li { margin-bottom: 6px; color: var(--text); font-weight: 700; }
+.report-doc .disclaimer {
+  font-size: 0.78rem; color: var(--text-muted); font-style: italic;
+  border-top: 1px solid var(--border); padding-top: 14px; margin: 26px 0 0;
+}
 
 @media print {
+  /* Kağıt için her zaman açık palet — koyu temada basılsa bile okunur kalsın. */
+  :root, :root[data-theme="dark"] {
+    --bg: #ffffff; --surface: #ffffff; --surface-2: #f4f1f8;
+    --text: #1d1526; --text-muted: #5b5366; --border: #d9d2e4;
+    --accent: #6a2792; --accent-soft: #f2e7fa;
+    --sage: #24704b; --sage-soft: #e4f3ea;
+    --honey: #96620f; --honey-soft: #fbefdb;
+  }
+  @page { margin: 14mm; }
+
+  body { background: #fff; }
   body * { visibility: hidden; }
-  .print-target, .print-target * { visibility: visible; }
-  .print-target { position: absolute; inset: 0; width: 100%; height: auto; max-height: none; overflow: visible; background: #fff; }
-  .no-print { display: none !important; }
+  .no-print, .no-print * { display: none !important; }
+  .print-target, .print-target * { visibility: visible !important; }
+
+  /* Rapor kağıda akabilsin diye modal kısıtlarını kaldır. */
+  .app-shell { max-width: none; display: block; min-height: 0; }
+  .modal-overlay { position: static; display: block; background: none; inset: auto; }
+  .modal-sheet {
+    max-width: none; max-height: none; overflow: visible;
+    border-radius: 0; box-shadow: none; background: #fff;
+  }
+  .print-target { position: absolute; left: 0; top: 0; width: 100%; background: #fff; }
+  .report-doc { padding: 0; }
+  .report-doc section { break-inside: avoid; }
 }

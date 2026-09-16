@@ -138,7 +138,7 @@ export function Reports() {
       </div>
 
       {openRow && (
-        <div className="modal-overlay no-print" onClick={() => setOpenReport(null)}>
+        <div className="modal-overlay" onClick={() => setOpenReport(null)}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header no-print">
               <button className="btn secondary sm" onClick={() => window.print()}>

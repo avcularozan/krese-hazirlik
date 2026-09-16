@@ -20,8 +20,17 @@ public class TrendService {
     public record AreaScore(String areaCode, double average, int observationCount) {}
     public record Buckets(List<AreaScore> strong, List<AreaScore> emerging, List<AreaScore> supportable) {}
 
+    private static final int MAX_UP = 3, MAX_WATCH = 2, MAX_SUPPORT_AREAS = 2;
+
     private final Repos.CheckInRepo checkIns;
-    public TrendService(Repos.CheckInRepo checkIns) { this.checkIns = checkIns; }
+    private final Repos.AreaRepo areas;
+    public TrendService(Repos.CheckInRepo checkIns, Repos.AreaRepo areas) {
+        this.checkIns = checkIns; this.areas = areas;
+    }
+
+    private String areaName(String code) {
+        return areas.findByCode(code).map(DevelopmentArea::getNameTr).orElse(code);
+    }
 
     private List<DailyCheckIn> window(UUID childId, ObservationSource src, LocalDate end, int days) {
         return checkIns.findByChildIdAndSourceAndCheckInDateBetweenOrderByCheckInDateAsc(
@@ -37,26 +46,55 @@ public class TrendService {
     }
     private static double avg(List<Short> v) { return v.stream().mapToInt(Short::intValue).average().orElse(0); }
 
+    /**
+     * Aynı cümle tekrarlanmaz: ilerleme en fazla 3, izleme en fazla 2 madde ile;
+     * "desteklenebilecek" bulguları madde madde değil alan bazında toplanır ve en fazla 2 alan gösterilir.
+     */
     public List<Finding> findings(UUID childId, LocalDate today) {
-        List<Finding> out = new ArrayList<>();
         var cur = byItem(window(childId, ObservationSource.PARENT, today, 7));
         var prev = byItem(window(childId, ObservationSource.PARENT, today.minusDays(7), 7));
         var month = byItem(window(childId, ObservationSource.PARENT, today, 30));
+
+        record Delta(CheckInQuestionService.Item item, double change) {}
+        List<Delta> ups = new ArrayList<>(), watches = new ArrayList<>();
+        Map<String, List<CheckInQuestionService.Item>> weakByArea = new LinkedHashMap<>();
+        Map<String, Double> areaAverage = new HashMap<>();
 
         for (var item : CheckInQuestionService.all()) {
             var c = cur.get(item.code()); var p = prev.get(item.code());
             if (c != null && p != null && c.size() >= 3 && p.size() >= 3) {
                 double d = avg(c) - avg(p);
-                if (d >= 0.6) out.add(new Finding("UP",
-                        "“" + item.text() + "” konusunda son iki haftada belirgin bir kolaylaşma görülüyor."));
-                else if (d <= -0.6) out.add(new Finding("WATCH",
-                        "“" + item.text() + "” bu hafta geçen haftaya göre daha zorlayıcı görünüyor."));
+                if (d >= 0.6) ups.add(new Delta(item, d));
+                else if (d <= -0.6) watches.add(new Delta(item, d));
             }
             var m = month.get(item.code());
-            if (m != null && m.size() >= 5 && avg(m) < 1.5) out.add(new Finding("SUPPORT",
-                    "Son haftalarda “" + item.text().toLowerCase(Locale.forLanguageTag("tr")) +
-                    "” alanındaki zorlanma sürüyor. Bu alanı öğretmeniyle birlikte gözlemlemek yararlı olabilir."));
+            if (m != null && m.size() >= 5 && avg(m) < 1.5) {
+                weakByArea.computeIfAbsent(item.areaCode(), k -> new ArrayList<>()).add(item);
+                areaAverage.merge(item.areaCode(), avg(m), Math::min);
+            }
         }
+
+        List<Finding> out = new ArrayList<>();
+        ups.sort(Comparator.comparingDouble(Delta::change).reversed());
+        ups.stream().limit(MAX_UP).forEach(d -> out.add(new Finding("UP",
+                "“" + d.item().text() + "” konusunda son iki haftada belirgin bir kolaylaşma görülüyor.")));
+
+        watches.sort(Comparator.comparingDouble(Delta::change));
+        watches.stream().limit(MAX_WATCH).forEach(d -> out.add(new Finding("WATCH",
+                "“" + d.item().text() + "” bu hafta geçen haftaya göre daha zorlayıcı görünüyor.")));
+
+        // En çok zorlanılan alanlar önce; her alan için tek cümle, örnek maddelerle.
+        weakByArea.entrySet().stream()
+                .sorted(Comparator.comparingDouble(e -> areaAverage.getOrDefault(e.getKey(), 3.0)))
+                .limit(MAX_SUPPORT_AREAS)
+                .forEach(e -> {
+                    String examples = e.getValue().stream().limit(2)
+                            .map(i -> i.text().toLowerCase(Locale.forLanguageTag("tr")))
+                            .collect(Collectors.joining(", "));
+                    out.add(new Finding("SUPPORT",
+                            "“" + areaName(e.getKey()) + "” alanında son haftalarda zorlanma sürüyor " +
+                            "(örneğin " + examples + "). Bu alanı öğretmeniyle birlikte gözlemlemek yararlı olabilir."));
+                });
         return out;
     }
 
