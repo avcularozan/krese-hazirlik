@@ -1,6 +1,7 @@
 export type Mood = 1 | 2 | 3 | 4;
 export type ItemValue = 0 | 1 | 2 | 3 | null;
-export type SkillLevel = "INDEPENDENT" | "WITH_REMINDER" | "WITH_HELP" | "NOT_YET" | "NO_CHANCE_TO_OBSERVE";
+/** Backend enum'u (SkillLevel) ile birebir aynı olmalı; DB kolonu varchar(8). */
+export type SkillLevel = "IND" | "REM" | "HELP" | "NOT" | "NA";
 
 export interface EnrollmentResponse {
   schoolName: string | null;

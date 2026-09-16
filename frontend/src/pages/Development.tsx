@@ -7,11 +7,11 @@ import { EmptyState } from "../components/EmptyState";
 import { useToast } from "../lib/ToastContext";
 
 const LEVEL_OPTIONS: { value: SkillLevel; label: string }[] = [
-  { value: "INDEPENDENT", label: "Kendi başına yapıyor" },
-  { value: "WITH_REMINDER", label: "Hatırlatmayla yapıyor" },
-  { value: "WITH_HELP", label: "Yardımla yapıyor" },
-  { value: "NOT_YET", label: "Henüz yapmıyor" },
-  { value: "NO_CHANCE_TO_OBSERVE", label: "Gözlemleyemedim" },
+  { value: "IND", label: "Kendi başına yapıyor" },
+  { value: "REM", label: "Hatırlatmayla yapıyor" },
+  { value: "HELP", label: "Yardımla yapıyor" },
+  { value: "NOT", label: "Henüz yapmıyor" },
+  { value: "NA", label: "Gözlemleyemedim" },
 ];
 
 export function Development() {

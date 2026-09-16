@@ -35,6 +35,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(a -> a
                 // Öğretmen uçları hesap gerektirmez; yetki X-Access-Code ile sınırlıdır.
                 .requestMatchers("/api/v1/auth/**", "/api/v1/teacher/**", "/actuator/health").permitAll()
+                // Hata sayfası engellenirse her 500, boş gövdeli 403 olarak görünür ve asıl sebep kaybolur.
+                .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().denyAll())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

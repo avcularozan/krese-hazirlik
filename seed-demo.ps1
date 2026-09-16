@@ -1,5 +1,6 @@
+param([string]$BaseUrl = "https://krese-hazirlik-eu.onrender.com/api/v1")
 $ErrorActionPreference = "Stop"
-$base = "https://krese-hazirlik.onrender.com/api/v1"
+$base = $BaseUrl
 $ts = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 $email = "demo$ts@example.com"
 $password = "DemoPass1234!"

@@ -50,6 +50,7 @@ public interface Repos {
 
     interface MonthlyReportRepo extends JpaRepository<MonthlyReport, UUID> {
         List<MonthlyReport> findByChildIdOrderByPeriodStartDesc(UUID childId);
+        Optional<MonthlyReport> findByChildIdAndPeriodStart(UUID childId, LocalDate periodStart);
     }
 
     interface ReadinessAreaRepo extends JpaRepository<ReadinessArea, Short> {

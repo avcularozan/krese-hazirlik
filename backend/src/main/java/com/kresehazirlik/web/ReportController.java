@@ -40,7 +40,8 @@ public class ReportController {
         payload.put("goals", b.supportable().stream().limit(3).map(TrendService.AreaScore::areaCode).toList());
         payload.put("disclaimer", "Bu rapor bir değerlendirme veya tanı değildir.");
 
-        MonthlyReport r = new MonthlyReport();
+        // Aynı dönem için yeniden üretildiğinde mevcut rapor tazelenir (child_id + period_start tekildir).
+        MonthlyReport r = reports.findByChildIdAndPeriodStart(childId, start).orElseGet(MonthlyReport::new);
         r.setChild(c); r.setPeriodStart(start); r.setPeriodEnd(end); r.setPayload(payload);
         reports.save(r);
         return payload;
