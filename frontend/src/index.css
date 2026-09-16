@@ -473,6 +473,9 @@ label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-
   border-top: 1px solid var(--border); padding-top: 14px; margin: 26px 0 0;
 }
 
+/* Yazdırma kopyası ekranda görünmez; yalnızca @media print içinde açılır. */
+#print-root { display: none; }
+
 @media print {
   /* Kağıt için her zaman açık palet — koyu temada basılsa bile okunur kalsın. */
   :root, :root[data-theme="dark"] {
@@ -484,19 +487,11 @@ label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-
   }
   @page { margin: 14mm; }
 
-  body { background: #fff; }
-  body * { visibility: hidden; }
-  .no-print, .no-print * { display: none !important; }
-  .print-target, .print-target * { visibility: visible !important; }
+  html, body { background: #fff; height: auto; }
+  /* Uygulama ağacı tamamen düşer; böylece rapor ilk sayfadan başlar. */
+  body > #root { display: none !important; }
+  #print-root { display: block !important; }
 
-  /* Rapor kağıda akabilsin diye modal kısıtlarını kaldır. */
-  .app-shell { max-width: none; display: block; min-height: 0; }
-  .modal-overlay { position: static; display: block; background: none; inset: auto; }
-  .modal-sheet {
-    max-width: none; max-height: none; overflow: visible;
-    border-radius: 0; box-shadow: none; background: #fff;
-  }
-  .print-target { position: absolute; left: 0; top: 0; width: 100%; background: #fff; }
   .report-doc { padding: 0; }
   .report-doc section { break-inside: avoid; }
 }

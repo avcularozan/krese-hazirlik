@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { api, ApiError, type AreaScore, type Trends } from "../lib/api";
 import { useChildren } from "../lib/ChildContext";
 import { ChildSwitcher } from "../components/ChildSwitcher";
@@ -75,6 +76,7 @@ export function Reports() {
   );
 
   const openRow = openReport !== null ? reports[openReport] : null;
+  const printRoot = document.getElementById("print-root");
 
   return (
     <>
@@ -140,7 +142,7 @@ export function Reports() {
       {openRow && (
         <div className="modal-overlay" onClick={() => setOpenReport(null)}>
           <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header no-print">
+            <div className="modal-header">
               <button className="btn secondary sm" onClick={() => window.print()}>
                 <Icon name="download" size={16} />PDF olarak indir
               </button>
@@ -148,17 +150,26 @@ export function Reports() {
                 ×
               </button>
             </div>
-            <div className="print-target">
-              <ReportDocument
-                childName={active.nickname}
-                periodStart={openRow.periodStart}
-                periodEnd={openRow.periodEnd}
-                payload={openRow.payload}
-                areaNames={areaNames}
-              />
-            </div>
+            <ReportDocument
+              childName={active.nickname}
+              periodStart={openRow.periodStart}
+              periodEnd={openRow.periodEnd}
+              payload={openRow.payload}
+              areaNames={areaNames}
+            />
           </div>
         </div>
+      )}
+
+      {openRow && printRoot && createPortal(
+        <ReportDocument
+          childName={active.nickname}
+          periodStart={openRow.periodStart}
+          periodEnd={openRow.periodEnd}
+          payload={openRow.payload}
+          areaNames={areaNames}
+        />,
+        printRoot
       )}
     </>
   );
