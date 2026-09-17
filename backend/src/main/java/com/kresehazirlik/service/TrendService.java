@@ -33,8 +33,7 @@ public class TrendService {
     }
 
     private List<DailyCheckIn> window(UUID childId, ObservationSource src, LocalDate end, int days) {
-        return checkIns.findByChildIdAndSourceAndCheckInDateBetweenOrderByCheckInDateAsc(
-                childId, src, end.minusDays(days - 1L), end);
+        return checkIns.findWindowWithObservations(childId, src, end.minusDays(days - 1L), end);
     }
 
     private Map<String, List<Short>> byItem(List<DailyCheckIn> list) {

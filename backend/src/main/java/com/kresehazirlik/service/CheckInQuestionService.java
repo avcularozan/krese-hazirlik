@@ -69,7 +69,7 @@ public class CheckInQuestionService {
     public List<Item> pick(UUID childId, LocalDate startDate, LocalDate today, Set<String> focusAreas) {
         int day = Math.max(1, schoolDay(startDate, today));
         int phase = phaseOf(day);
-        var recent = checkIns.findByChildIdAndSourceAndCheckInDateBetweenOrderByCheckInDateAsc(
+        var recent = checkIns.findWindowWithObservations(
                 childId, ObservationSource.PARENT, today.minusDays(7), today);
         Map<String, List<Short>> lastWeek = new HashMap<>();
         Map<String, Integer> askedLast3 = new HashMap<>();

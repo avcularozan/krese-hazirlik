@@ -9,4 +9,6 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /src/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+# Küçük, tek çekirdekli örnek için: seri çöp toplayıcı (daha az iş parçacığı yükü),
+# yığın boyutu konteyner belleğine göre, daha küçük iş parçacığı yığınları.
+ENTRYPOINT ["java","-XX:+UseSerialGC","-XX:MaxRAMPercentage=75","-Xss512k","-jar","/app/app.jar"]

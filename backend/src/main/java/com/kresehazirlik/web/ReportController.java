@@ -96,7 +96,7 @@ public class ReportController {
         Child c = access.requireOwned(childId, CurrentParent.id());
 
         List<Map<String, Object>> checkInRows = new ArrayList<>();
-        for (DailyCheckIn ci : checkIns.findByChildIdOrderByCheckInDateDesc(childId)) {
+        for (DailyCheckIn ci : checkIns.findAllWithObservations(childId)) {
             Map<String, Short> items = new LinkedHashMap<>();
             for (Observation o : ci.getObservations()) items.put(o.getItemCode(), o.getValue());
             Map<String, Object> row = new LinkedHashMap<>();

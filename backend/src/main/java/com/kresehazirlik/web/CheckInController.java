@@ -64,8 +64,8 @@ public class CheckInController {
         access.requireOwned(childId, CurrentParent.id());
         LocalDate end = to == null ? LocalDate.now() : to;
         LocalDate start = from == null ? end.minusDays(89) : from;
-        return checkIns.findByChildIdAndSourceAndCheckInDateBetweenOrderByCheckInDateAsc(
-                childId, ObservationSource.PARENT, start, end).stream().map(this::toResponse).toList();
+        return checkIns.findWindowWithObservations(childId, ObservationSource.PARENT, start, end)
+                .stream().map(this::toResponse).toList();
     }
 
     @GetMapping("/trends")

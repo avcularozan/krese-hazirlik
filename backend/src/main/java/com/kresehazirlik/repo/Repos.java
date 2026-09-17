@@ -2,6 +2,8 @@ package com.kresehazirlik.repo;
 
 import com.kresehazirlik.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.time.LocalDate; import java.util.*;
 
 public interface Repos {
@@ -18,9 +20,29 @@ public interface Repos {
 
     interface CheckInRepo extends JpaRepository<DailyCheckIn, UUID> {
         Optional<DailyCheckIn> findByChildIdAndCheckInDateAndSource(UUID childId, LocalDate date, ObservationSource source);
-        List<DailyCheckIn> findByChildIdAndSourceAndCheckInDateBetweenOrderByCheckInDateAsc(
-                UUID childId, ObservationSource source, LocalDate from, LocalDate to);
-        List<DailyCheckIn> findByChildIdOrderByCheckInDateDesc(UUID childId);
+        /**
+         * Gözlemleri tek sorguda getirir. Trend ve geçmiş ekranları her kaydın gözlemlerini
+         * okuduğu için, tembel yükleme burada kayıt sayısı kadar ek sorgu doğuruyordu.
+         */
+        @Query("""
+               select distinct ci from DailyCheckIn ci
+               left join fetch ci.observations
+               where ci.child.id = :childId and ci.source = :source
+                 and ci.checkInDate between :from and :to
+               order by ci.checkInDate asc
+               """)
+        List<DailyCheckIn> findWindowWithObservations(@Param("childId") UUID childId,
+                                                      @Param("source") ObservationSource source,
+                                                      @Param("from") LocalDate from,
+                                                      @Param("to") LocalDate to);
+
+        @Query("""
+               select distinct ci from DailyCheckIn ci
+               left join fetch ci.observations
+               where ci.child.id = :childId
+               order by ci.checkInDate desc
+               """)
+        List<DailyCheckIn> findAllWithObservations(@Param("childId") UUID childId);
     }
 
     interface AreaRepo extends JpaRepository<DevelopmentArea, Short> {
