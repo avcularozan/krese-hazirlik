@@ -1,8 +1,5 @@
 spring:
-  # 0.1 CPU'luk ücretsiz örnekte açılış dakikalar sürüyordu; bileşenler ilk kullanımda kurulur.
-  # Flyway bunun dışında tutulur (bkz. StartupConfig), göçler açılışta çalışmaya devam eder.
   main:
-    lazy-initialization: true
     banner-mode: off
   jmx:
     enabled: false
